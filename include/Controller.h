@@ -1,0 +1,13 @@
+//
+// Created by geodan on 10/31/25.
+//
+
+#ifndef SPOTIFYPLAYLISTSPLITTER_CONTROLLER_H
+#define SPOTIFYPLAYLISTSPLITTER_CONTROLLER_H
+
+
+class Controller {
+};
+
+
+#endif //SPOTIFYPLAYLISTSPLITTER_CONTROLLER_H

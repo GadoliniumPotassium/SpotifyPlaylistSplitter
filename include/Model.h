@@ -1,0 +1,13 @@
+//
+// Created by geodan on 10/31/25.
+//
+
+#ifndef SPOTIFYPLAYLISTSPLITTER_MODEL_H
+#define SPOTIFYPLAYLISTSPLITTER_MODEL_H
+
+
+class Model {
+};
+
+
+#endif //SPOTIFYPLAYLISTSPLITTER_MODEL_H

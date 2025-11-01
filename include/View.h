@@ -1,0 +1,13 @@
+//
+// Created by geodan on 10/31/25.
+//
+
+#ifndef SPOTIFYPLAYLISTSPLITTER_VIEW_H
+#define SPOTIFYPLAYLISTSPLITTER_VIEW_H
+
+
+class View {
+};
+
+
+#endif //SPOTIFYPLAYLISTSPLITTER_VIEW_H
