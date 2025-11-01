@@ -12,6 +12,7 @@ int main() {
     Controller controller(model,view);
 
     std::cout << "Welcome to the Spotify Playlist Splitter CLI" <<std::endl;
-    std::cout <<"This project is currently under construction" <<std::endl;
+    std::cout <<"This project is currently under construction." <<std::endl;
+    std::cout <<"More coming soon" <<std::endl;
     return 0;
 }
