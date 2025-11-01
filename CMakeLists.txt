@@ -18,10 +18,7 @@ set(SOURCES
 add_executable(SpotifyPlaylistSplitter ${SOURCES})
 
 # Public include directory (your headers)
-target_include_directories(SpotifyPlaylistSplitter
-        PRIVATE
-        ${CMAKE_SOURCE_DIR}/include
-)
+target_include_directories(SpotifyPlaylistSplitter PRIVATE ${CMAKE_SOURCE_DIR}/include)
 
 # Find nlohmann_json (system package). If found, link target; otherwise assume single-header in include/
 find_package(nlohmann_json QUIET)
@@ -29,8 +26,7 @@ if (nlohmann_json_FOUND)
     message(STATUS "Using system nlohmann_json package")
     target_link_libraries(SpotifyPlaylistSplitter PRIVATE nlohmann_json::nlohmann_json)
 else()
-    message(STATUS "System nlohmann_json not found — using include/ (ensure include/nlohmann/json.hpp exists)")
-    # include/ already added above
+    message(WARNING "System nlohmann_json not found — using include/ (ensure include/nlohmann/json.hpp exists)")
 endif()
 
 # Find gtkmm via pkg-config
@@ -47,6 +43,14 @@ target_compile_options(SpotifyPlaylistSplitter PRIVATE
         $<$<CXX_COMPILER_ID:GNU>:-Wall -Wextra -Wpedantic>
         $<$<CXX_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic>
 )
+
+# Find laserpants_dotenv
+find_package(laserpants_dotenv REQUIRED)
+if (laserpants_dotenv_FOUND)
+    target_link_libraries(SpotifyPlaylistSplitter PRIVATE laserpants::dotenv)
+else()
+    message(FATAL_ERROR "laserpants_dotenv not found. Please install it.")
+endif()
 
 # Install target
 install(TARGETS SpotifyPlaylistSplitter RUNTIME DESTINATION bin)
