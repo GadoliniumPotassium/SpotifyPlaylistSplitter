@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <nlohmann/json_fwd.hpp>
+#include <nlohmann/json.hpp>
 #include <laserpants/dotenv-0.9.3/dotenv.h>
 #include <curl/curl.h>
 
@@ -72,9 +72,13 @@ public:
      */
     [[nodiscard]] const nlohmann::json &getPlaylistData() const noexcept { return playlistData; }
 
+    static size_t WriteCallback(void* contents, size_t size, size_t nmemb, std::string* s);
+
+    std::string getAccessToken(const std::string &clientId, const std::string &clientSecret, const std::string &code,
+                               const std::string &redirectUri);
+
+
 private:
-    const std::string CLIENT_ID;         ///< The client ID for Spotify API authentication.
-    const std::string CLIENT_SECRET;     ///< The client secret for Spotify API authentication.
     nlohmann::json &likedSongsData;      ///< JSON object holding data for liked songs.
     nlohmann::json &audioFeaturesData;   ///< JSON object holding audio features data.
     nlohmann::json &playlistData;        ///< JSON object holding playlist data.
