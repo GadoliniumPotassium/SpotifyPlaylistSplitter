@@ -10,7 +10,7 @@
 #include <map>
 #include <nlohmann/json.hpp>
 #include <laserpants/dotenv-0.9.3/dotenv.h>
-#include <curl/curl.h>
+#include <cpr/cpr.h>
 
 /**
  * @brief The Model class handles the interactions with Spotify playlists.
@@ -54,8 +54,7 @@ public:
 
     static size_t WriteCallback(void *contents, size_t size, size_t nmemb, std::string *s);
 
-    std::string getAccessToken(const std::string &clientId, const std::string &clientSecret, const std::string &code,
-                               const std::string &redirectUri);
+    std::string getAccessToken(const std::string &clientId, const std::string &clientSecret);
 };
 
 #endif //SPOTIFYPLAYLISTSPLITTER_MODEL_H

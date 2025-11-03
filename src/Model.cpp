@@ -7,121 +7,85 @@
 Model::Model() {
 }
 
-// Improved error handling and resource management
 nlohmann::json Model::fetchPlaylistData() {
-    // Validate environment variables first
+    // Load environment variables
+    dotenv::init("../.env");
     const std::string clientId = dotenv::getenv("SPOTIFY_CLIENT_ID");
     const std::string clientSecret = dotenv::getenv("SPOTIFY_CLIENT_SECRET");
-    const std::string user = dotenv::getenv("USER");
-
-    std::cout << clientId << " --" << clientSecret << " // " << user << std::endl;
+    const std::string user = dotenv::getenv("SPOTIFY_USER");
 
     if (clientId.empty() || clientSecret.empty() || user.empty()) {
         throw std::runtime_error("Missing required Spotify credentials or user");
     }
 
-    std::string token = getAccessToken(clientId, clientSecret, "", "");
-
-    CURL *curl = curl_easy_init();
-    if (!curl) {
-        throw std::runtime_error("Failed to initialize cURL");
-    }
-
-    std::string readBuffer;
-    curl_slist *headers = nullptr;
+    // Get access token
+    const std::string token = getAccessToken(clientId, clientSecret);
 
     try {
-        // Add error checking for header creation
-        headers = curl_slist_append(headers, ("Authorization: Bearer " + token).c_str());
-        if (!headers) {
-            throw std::runtime_error("Failed to create cURL headers");
+        // Spotify API endpoint
+        const std::string url = "https://api.spotify.com/v1/users/" + user + "/playlists?limit=100";
+
+        // Make GET request
+        const cpr::Response response = cpr::Get(
+            cpr::Url{url},
+            cpr::Header{
+                {"Authorization", "Bearer " + token},
+                {"Content-Type", "application/json"}
+            },
+            cpr::Timeout{30000}
+        );
+
+        if (response.status_code != 200) {
+            throw std::runtime_error(
+                "Spotify API request failed (" + std::to_string(response.status_code) + "): " + response.text
+            );
         }
 
-        std::string url = "https://api.spotify.com/v1/users/" + user + "/playlists";
-
-        // Additional cURL options for robustness
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L); // Fail on HTTP errors
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L); // 30-second timeout
-
-        CURLcode res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            throw std::runtime_error("cURL request failed: " + std::string(curl_easy_strerror(res)));
-        }
-
-        // Cleanup before parsing
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-
-        // Parse and return JSON
-        return nlohmann::json::parse(readBuffer);
-    } catch (...) {
-        // Ensure cleanup in all error scenarios
-        if (headers) curl_slist_free_all(headers);
-        if (curl) curl_easy_cleanup(curl);
-        throw; // Re-throw the original exception
+        return nlohmann::json::parse(response.text);
+    } catch (const std::exception& e) {
+        throw std::runtime_error("Failed to fetch playlist data: " + std::string(e.what()));
     }
 }
 
 
-nlohmann::json Model::fetchPlaylistSongsData(const std::string &playlistId) {
-// Validate environment variables first
-    const std::string clientId = dotenv::getenv("SPOTIFY_CLIENT_ID");
-    const std::string clientSecret = dotenv::getenv("SPOTIFY_CLIENT_SECRET");
-    const std::string user = dotenv::getenv("USER");
 
-    std::cout << clientId << " --" << clientSecret << " // " << user << std::endl;
+nlohmann::json Model::fetchPlaylistSongsData(const std::string &playlistId) {
+    // Load environment variables
+    dotenv::init();
+    const std::string clientId = "s046dcf727c56473484b19b4e570c83aa";
+    const std::string clientSecret = "4cb633c5aad94a32ad01ad31c4f48346";
+    const std::string user = "gdkh514";
 
     if (clientId.empty() || clientSecret.empty() || user.empty()) {
         throw std::runtime_error("Missing required Spotify credentials or user");
     }
 
-    std::string token = getAccessToken(clientId, clientSecret, "", "");
-
-    CURL *curl = curl_easy_init();
-    if (!curl) {
-        throw std::runtime_error("Failed to initialize cURL");
-    }
-
-    std::string readBuffer;
-    curl_slist *headers = nullptr;
+    // Get access token
+    const std::string token = getAccessToken(clientId, clientSecret);
 
     try {
-        // Add error checking for header creation
-        headers = curl_slist_append(headers, ("Authorization: Bearer " + token).c_str());
-        if (!headers) {
-            throw std::runtime_error("Failed to create cURL headers");
+        // Spotify API endpoint
+        const std::string url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks?limit=50";
+
+        // Make GET request
+        const cpr::Response response = cpr::Get(
+            cpr::Url{url},
+            cpr::Header{
+                {"Authorization", "Bearer " + token},
+                {"Content-Type", "application/json"}
+            },
+            cpr::Timeout{30000}
+        );
+
+        if (response.status_code != 200) {
+            throw std::runtime_error(
+                "Spotify API request failed (" + std::to_string(response.status_code) + "): " + response.text
+            );
         }
 
-        std::string url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks?limit=50";
-
-        // Additional cURL options for robustness
-        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, WriteCallback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-        curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L); // Fail on HTTP errors
-        curl_easy_setopt(curl, CURLOPT_TIMEOUT, 30L); // 30-second timeout
-
-        CURLcode res = curl_easy_perform(curl);
-        if (res != CURLE_OK) {
-            throw std::runtime_error("cURL request failed: " + std::string(curl_easy_strerror(res)));
-        }
-
-        // Cleanup before parsing
-        curl_slist_free_all(headers);
-        curl_easy_cleanup(curl);
-
-        // Parse and return JSON
-        return nlohmann::json::parse(readBuffer);
-    } catch (...) {
-        // Ensure cleanup in all error scenarios
-        if (headers) curl_slist_free_all(headers);
-        if (curl) curl_easy_cleanup(curl);
-        throw; // Re-throw the original exception
+        return nlohmann::json::parse(response.text);
+    } catch (const std::exception& e) {
+        throw std::runtime_error("Failed to fetch playlist data: " + std::string(e.what()));
     }
 }
 
@@ -141,72 +105,67 @@ size_t Model::WriteCallback(void *contents, size_t size, size_t nmemb, std::stri
     }
 }
 
-std::string Model::getAccessToken(const std::string &clientId, const std::string &clientSecret,
-                                  const std::string &code = "",
-                                  const std::string &redirectUri = "") {
-    CURL *curl = nullptr;
-    CURLcode res;
-    std::string readBuffer;
+// Simple Base64 encoding function (sufficient for client credentials)
+static std::string base64Encode(const std::string& input) {
+    static const char lookup[] =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-    curl = curl_easy_init();
-    if (!curl) {
-        throw std::runtime_error("Failed to initialize cURL");
-    }
+    std::string encoded;
+    int val = 0;
+    int valb = -6;
 
-    // Prepare POST fields based on the authentication method
-    std::string postFields;
-    std::string url;
-
-    // Check if we're doing authorization code flow or client credentials flow
-    if (!code.empty() && !redirectUri.empty()) {
-        // Authorization Code Flow
-        url = "https://accounts.spotify.com/api/token";
-        postFields = "grant_type=authorization_code&code=" + code +
-                     "&redirect_uri=" + redirectUri +
-                     "&client_id=" + clientId +
-                     "&client_secret=" + clientSecret;
-    } else {
-        // Client Credentials Flow
-        url = "https://accounts.spotify.com/api/token";
-        postFields = "grant_type=client_credentials&client_id=" + clientId +
-                     "&client_secret=" + clientSecret;
-    }
-
-    // Callback to store response
-    auto writeCallback = [](void *contents, size_t size, size_t nmemb, std::string *s) -> size_t {
-        size_t newLength = size * nmemb;
-        try {
-            s->append((char *) contents, newLength);
-            return newLength;
-        } catch (std::bad_alloc &e) {
-            return 0;
+    for (unsigned char c : input) {
+        val = (val << 8) + c;
+        valb += 8;
+        while (valb >= 0) {
+            encoded.push_back(lookup[(val >> valb) & 0x3F]);
+            valb -= 6;
         }
-    };
-
-    // Set cURL options
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_POST, 1L);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postFields.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeCallback);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &readBuffer);
-
-    // Perform the request
-    res = curl_easy_perform(curl);
-
-    // Clean up
-    curl_easy_cleanup(curl);
-
-    // Check for errors
-    if (res != CURLE_OK) {
-        throw std::runtime_error("cURL request failed: " + std::string(curl_easy_strerror(res)));
     }
 
-    // Parse and return the token from the response
-    try {
-        const auto jsonResponse = nlohmann::json::parse(readBuffer);
-        return jsonResponse.value("access_token", "");
-    } catch (const std::exception &e) {
-        throw std::runtime_error("Failed to parse access token response: " + std::string(e.what()));
+    if (valb > -6)
+        encoded.push_back(lookup[((val << 8) >> (valb + 8)) & 0x3F]);
+
+    while (encoded.size() % 4)
+        encoded.push_back('=');
+
+    return encoded;
+}
+
+std::string Model::getAccessToken(const std::string& clientId, const std::string& clientSecret) {
+    // Spotify token endpoint
+    const std::string url = "https://accounts.spotify.com/api/token";
+
+    // Body for client credentials flow
+    const std::string body = "grant_type=client_credentials";
+
+    // Basic authorization header (base64 of client_id:client_secret)
+    const std::string credentials = clientId + ":" + clientSecret;
+    const std::string encoded = base64Encode(credentials);
+
+    // Make POST request
+    const cpr::Response response = cpr::Post(
+        cpr::Url{url},
+        cpr::Header{
+            {"Authorization", "Basic " + encoded},
+            {"Content-Type", "application/x-www-form-urlencoded"}
+        },
+        cpr::Body{body},
+        cpr::Timeout{15000}
+    );
+
+    if (response.status_code != 200) {
+        throw std::runtime_error(
+            "Failed to obtain access token (" + std::to_string(response.status_code) + "): " + response.text
+        );
     }
+
+    // Parse token from JSON
+    const nlohmann::json json = nlohmann::json::parse(response.text);
+    if (!json.contains("access_token")) {
+        throw std::runtime_error("Access token missing in response: " + response.text);
+    }
+
+    return json["access_token"].get<std::string>();
 }
 
