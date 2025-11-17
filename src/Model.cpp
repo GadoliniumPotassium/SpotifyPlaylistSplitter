@@ -102,7 +102,7 @@ std::vector<nlohmann::json> Model::fetchAudioFeatures(const std::vector<std::str
     // Get access token
     const std::string token = getAccessToken(clientId, clientSecret);
 
-    std::vector<nhlohmann::json> audioFeatures;
+    std::vector<nlohmann::json> audioFeatures;
     for (auto id: trackIds) {
         try {
             const std::string url = "https://api.spotify.com/v1/audio-features/"+id;
