@@ -23,7 +23,7 @@ nlohmann::json Model::fetchPlaylistData() {
 
     try {
         // Spotify API endpoint
-        const std::string url = "https://api.spotify.com/v1/users/" + user + "/playlists?limit=100";
+        const std::string url = "https://api.spotify.com/v1/users/" + user + "/playlists?limit=100&offset=5";
 
         // Make GET request
         const cpr::Response response = cpr::Get(
@@ -51,10 +51,10 @@ nlohmann::json Model::fetchPlaylistData() {
 
 nlohmann::json Model::fetchPlaylistSongsData(const std::string &playlistId) {
     // Load environment variables
-    dotenv::init();
-    const std::string clientId = "s046dcf727c56473484b19b4e570c83aa";
-    const std::string clientSecret = "4cb633c5aad94a32ad01ad31c4f48346";
-    const std::string user = "gdkh514";
+    dotenv::init("../.env");
+    const std::string clientId = dotenv::getenv("SPOTIFY_CLIENT_ID");
+    const std::string clientSecret = dotenv::getenv("SPOTIFY_CLIENT_SECRET");
+    const std::string user = dotenv::getenv("SPOTIFY_USER");
 
     if (clientId.empty() || clientSecret.empty() || user.empty()) {
         throw std::runtime_error("Missing required Spotify credentials or user");
@@ -89,7 +89,44 @@ nlohmann::json Model::fetchPlaylistSongsData(const std::string &playlistId) {
     }
 }
 
-void Model::fetchAudioFeatures(const std::vector<std::string> &trackIds) {
+std::vector<nlohmann::json> Model::fetchAudioFeatures(const std::vector<std::string> &trackIds) {
+    // Load environment variables
+    dotenv::init("../.env");
+    const std::string clientId = dotenv::getenv("SPOTIFY_CLIENT_ID");
+    const std::string clientSecret = dotenv::getenv("SPOTIFY_CLIENT_SECRET");
+    const std::string user = dotenv::getenv("SPOTIFY_USER");
+
+    if (clientId.empty() || clientSecret.empty() || user.empty()) {
+        throw std::runtime_error("Missing required Spotify credentials or user");
+    }
+    // Get access token
+    const std::string token = getAccessToken(clientId, clientSecret);
+
+    std::vector<nhlohmann::json> audioFeatures;
+    for (auto id: trackIds) {
+        try {
+            const std::string url = "https://api.spotify.com/v1/audio-features/"+id;
+            // Make GET request
+            const cpr::Response response = cpr::Get(
+                cpr::Url{url},
+                cpr::Header{
+                    {"Authorization", "Bearer " + token},
+                    {"Content-Type", "application/json"}
+                },
+                cpr::Timeout{30000}
+            );
+
+            if (response.status_code != 200) {
+                throw std::runtime_error(
+                    "Spotify API request failed (" + std::to_string(response.status_code) + "): " + response.text
+                );
+            }
+            audioFeatures.push_back(nlohmann::json::parse(response.text));
+        }catch (const std::exception& e) {
+            throw std::runtime_error("Failed to fetch track data: " + std::string(e.what()));
+        }
+    }
+    return audioFeatures;
 }
 
 std::map<std::string, std::vector<std::string> > Model::categorizeSongs() {

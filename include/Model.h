@@ -39,11 +39,11 @@ public:
     nlohmann::json fetchPlaylistSongsData(const std::string &playlistId);
 
     /**
-     * @brief Loops through the retrieved songs and gathers their audio features.
      *
-     * @param trackIds A vector of track IDs for which to fetch audio features.
+     * @param trackIds the spotify track id
+     * @return a data container containing the audio features of everysong in the playlist.
      */
-    void fetchAudioFeatures(const std::vector<std::string> &trackIds);
+    std::vector<nlohmann::json> fetchAudioFeatures(const std::vector<std::string> &trackIds);
 
     /**
      * @brief Categorizes the songs based on predetermined vibes.
