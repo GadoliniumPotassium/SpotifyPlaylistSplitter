@@ -62,12 +62,17 @@ nlohmann::json Model::fetchPlaylistSongsData(const std::string &playlistId) {
 
     // Get access token
     const std::string token = getAccessToken(clientId, clientSecret);
+    nlohmann::json allTracksJson;
+    allTracksJson["tracks"] = nlohmann::json::array();
 
     try {
         // Spotify API endpoint
-        const std::string url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks?limit=50";
+        nlohmann::json pageJson;
+        int offset = 0;
+        const std::string url = "https://api.spotify.com/v1/playlists/" + playlistId + "/tracks?limit=50&offset="+std::to_string(offset);
 
-        // Make GET request
+        do{
+            // Make GET request
         const cpr::Response response = cpr::Get(
             cpr::Url{url},
             cpr::Header{
@@ -83,7 +88,16 @@ nlohmann::json Model::fetchPlaylistSongsData(const std::string &playlistId) {
             );
         }
 
-        return nlohmann::json::parse(response.text);
+        pageJson = nlohmann::json::parse(response.text);
+
+        for(const auto& track:pageJson["items"]){
+            allTracksJson["tracks"].push_back(track);
+        }
+        offset+=50;
+
+        }while(pageJson["items"].size() == 50);
+
+        return allTracksJson;
     } catch (const std::exception& e) {
         throw std::runtime_error("Failed to fetch playlist data: " + std::string(e.what()));
     }
